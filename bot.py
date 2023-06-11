@@ -1,9 +1,9 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler
 
 # Inisialisasi token bot Telegram
-telegram_token = '6171063049:AAEtT8LfoUS6xqV2rCQlA_M_7DAse0e_zG0'
+telegram_token = 'TOKEN_BOT_TELEGRAM'
 bot = telegram.Bot(token=telegram_token)
 
 # Fungsi untuk menangani perintah /start
@@ -13,7 +13,7 @@ def start(update, context):
 # Fungsi untuk menangani pesan media yang diterima
 def handle_media(update, context):
     # Cek apakah pengirim pesan adalah admin atau pemilik bot
-    if update.message.from_user.id in [1931366417, 1837975267]:  # Ganti admin_id dan owner_id dengan ID yang sesuai
+    if update.message.from_user.id in [1837975267, 1931366417]:  # Ganti admin_id dan owner_id dengan ID yang sesuai
         # Cek apakah pesan adalah media (gambar, video, dll.)
         if update.message.photo:
             media_file_id = update.message.photo[-1].file_id
@@ -40,7 +40,7 @@ def main():
     dispatcher.add_handler(start_handler)
     
     # Handler pesan media yang diterima
-    media_handler = MessageHandler(Filters.media, handle_media)
+    media_handler = MessageHandler(telegram.Filters.photo | telegram.Filters.video, handle_media)
     dispatcher.add_handler(media_handler)
     
     updater.start_polling()
