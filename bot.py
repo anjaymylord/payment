@@ -1,5 +1,5 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Inisialisasi token bot Telegram
@@ -8,32 +8,27 @@ bot = telegram.Bot(token=telegram_token)
 
 # Fungsi untuk menangani perintah /start
 def start(update, context):
-    update.message.reply_text('Halo! Untuk mengakses grup ini, silakan langganan ke saluran terlebih dahulu.')
+    update.message.reply_text('Halo! Untuk bergabung dengan grup, silakan bergabung dengan saluran terlebih dahulu.')
 
-# Fungsi untuk menangani pesan yang diterima dari pengguna
-def handle_message(update, context):
-    user_id = update.message.from_user.id
-    channel_username = '@mediasayu'  # Ganti dengan username saluran yang diinginkan
-    subscribed = bot.get_chat_member(channel_username, user_id).status == 'member'
-    
-    if subscribed:
-        update.message.reply_text('Anda sudah berlangganan ke saluran. Selamat datang di grup!')
+# Fungsi untuk menangani pesan media yang diterima
+def handle_media(update, context):
+    # Cek apakah pengirim pesan adalah admin atau pemilik bot
+    if update.message.from_user.id in [1931366417, 1837975267]:  # Ganti admin_id dan owner_id dengan ID yang sesuai
+        # Cek apakah pesan adalah media (gambar, video, dll.)
+        if update.message.photo:
+            media_file_id = update.message.photo[-1].file_id
+            media_link = bot.get_file(media_file_id).file_path
+            update.message.reply_text(f"Berikut adalah tautan untuk media yang dikirim: {media_link}")
+        elif update.message.video:
+            media_file_id = update.message.video.file_id
+            media_link = bot.get_file(media_file_id).file_path
+            update.message.reply_text(f"Berikut adalah tautan untuk video yang dikirim: {media_link}")
+        # Tambahkan kondisi lainnya sesuai dengan jenis media yang ingin Anda dukung
     else:
-        update.message.reply_text('Silakan langganan ke saluran terlebih dahulu untuk mengakses grup.')
-
-# Fungsi untuk menangani callback query
-def handle_callback_query(update, context):
-    query = update.callback_query
-    user_id = query.from_user.id
-    message = query.message
-    
-    # Cek apakah pesan merupakan pesan forward
-    if message.forward_from:
-        bot.answer_callback_query(query.id, text='Anda tidak diizinkan meneruskan pesan ini.')
-        # Jika pesan merupakan pesan forward, lakukan tindakan yang diinginkan (misalnya, hapus pesan)
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    else:
-        bot.answer_callback_query(query.id, text='Pesan tidak diteruskan.')
+        channel_username = '@mediasayu'  # Ganti dengan username channel yang diinginkan
+        button = InlineKeyboardButton('Bergabung ke Channel', url=f'https://t.me/mediasayu')
+        keyboard = InlineKeyboardMarkup([[button]])
+        update.message.reply_text('Silakan bergabung dengan saluran terlebih dahulu untuk bergabung dengan grup.', reply_markup=keyboard)
 
 # Fungsi utama untuk menjalankan bot Telegram
 def main():
@@ -44,13 +39,9 @@ def main():
     start_handler = CommandHandler('start', start)
     dispatcher.add_handler(start_handler)
     
-    # Handler pesan yang diterima
-    message_handler = MessageHandler(Filters.text & (~Filters.command), handle_message)
-    dispatcher.add_handler(message_handler)
-    
-    # Handler callback query
-    callback_query_handler = CallbackQueryHandler(handle_callback_query)
-    dispatcher.add_handler(callback_query_handler)
+    # Handler pesan media yang diterima
+    media_handler = MessageHandler(Filters.media, handle_media)
+    dispatcher.add_handler(media_handler)
     
     updater.start_polling()
     updater.idle()
