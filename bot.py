@@ -1,9 +1,8 @@
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Inisialisasi token bot Telegram
-telegram_token = 'TOKEN_BOT_TELEGRAM'
+telegram_token = '6171063049:AAEtT8LfoUS6xqV2rCQlA_M_7DAse0e_zG0'
 bot = telegram.Bot(token=telegram_token)
 
 # Fungsi untuk menangani perintah /start
@@ -26,13 +25,13 @@ def handle_media(update, context):
         # Tambahkan kondisi lainnya sesuai dengan jenis media yang ingin Anda dukung
     else:
         channel_username = '@mediasayu'  # Ganti dengan username channel yang diinginkan
-        button = InlineKeyboardButton('Bergabung ke Channel', url=f'https://t.me/mediasayu')
-        keyboard = InlineKeyboardMarkup([[button]])
+        button = telegram.InlineKeyboardButton('Bergabung ke Channel', url=f'https://t.me/mediasayu')
+        keyboard = telegram.InlineKeyboardMarkup([[button]])
         update.message.reply_text('Silakan bergabung dengan saluran terlebih dahulu untuk bergabung dengan grup.', reply_markup=keyboard)
 
 # Fungsi utama untuk menjalankan bot Telegram
 def main():
-    updater = Updater(token=telegram_token, use_context=True)
+    updater = Updater(bot=bot, use_context=True)
     dispatcher = updater.dispatcher
     
     # Handler perintah /start
@@ -40,7 +39,7 @@ def main():
     dispatcher.add_handler(start_handler)
     
     # Handler pesan media yang diterima
-    media_handler = MessageHandler(telegram.Filters.photo | telegram.Filters.video, handle_media)
+    media_handler = MessageHandler(Filters.photo | Filters.video, handle_media)
     dispatcher.add_handler(media_handler)
     
     updater.start_polling()
