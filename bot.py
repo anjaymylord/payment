@@ -1,50 +1,37 @@
-import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler
 
-# Inisialisasi token bot Telegram
-telegram_token = '6171063049:AAEtT8LfoUS6xqV2rCQlA_M_7DAse0e_zG0'
-bot = telegram.Bot(token=telegram_token)
+# Inisialisasi variabel global
+links = {}  # Dictionary untuk menyimpan tautan channel
 
-# Fungsi untuk menangani perintah /start
-def start(update, context):
-    update.message.reply_text('Halo! Untuk bergabung dengan grup, silakan bergabung dengan saluran terlebih dahulu.')
+# Fungsi untuk menangani perintah /copylink
+def copy_link(update, context):
+    user_id = update.effective_user.id
 
-# Fungsi untuk menangani pesan media yang diterima
-def handle_media(update, context):
-    # Cek apakah pengirim pesan adalah admin atau pemilik bot
-    if update.message.from_user.id in [1837975267, 1931366417]:  # Ganti admin_id dan owner_id dengan ID yang sesuai
-        # Cek apakah pesan adalah media (gambar, video, dll.)
-        if update.message.photo:
-            media_file_id = update.message.photo[-1].file_id
-            media_link = bot.get_file(media_file_id).file_path
-            update.message.reply_text(f"Berikut adalah tautan untuk media yang dikirim: {media_link}")
-        elif update.message.video:
-            media_file_id = update.message.video.file_id
-            media_link = bot.get_file(media_file_id).file_path
-            update.message.reply_text(f"Berikut adalah tautan untuk video yang dikirim: {media_link}")
-        # Tambahkan kondisi lainnya sesuai dengan jenis media yang ingin Anda dukung
+    if user_id in links:
+        # Jika pengguna sudah meminta tautan sebelumnya
+        update.message.reply_text("Anda sudah meminta tautan sebelumnya.")
     else:
-        channel_username = '@mediasayu'  # Ganti dengan username channel yang diinginkan
-        button = telegram.InlineKeyboardButton('Bergabung ke Channel', url=f'https://t.me/mediasayu')
-        keyboard = telegram.InlineKeyboardMarkup([[button]])
-        update.message.reply_text('Silakan bergabung dengan saluran terlebih dahulu untuk bergabung dengan grup.', reply_markup=keyboard)
+        if len(links) < 1:
+            # Jika masih ada slot tersedia
+            channel_link = "https://t.me/+zn9YABu82_M3M2I5"  # Ganti dengan tautan channel yang sebenarnya
+            links[user_id] = channel_link
+            update.message.reply_text(f"Ini tautan channel: {channel_link}")
+        else:
+            # Jika semua slot sudah terisi
+            update.message.reply_text("Maaf, jumlah permintaan sudah mencapai batas.")
 
-# Fungsi utama untuk menjalankan bot Telegram
+# Fungsi utama untuk menjalankan bot
 def main():
-    updater = Updater(bot=bot, use_context=True)
-    dispatcher = updater.dispatcher
-    
-    # Handler perintah /start
-    start_handler = CommandHandler('start', start)
-    dispatcher.add_handler(start_handler)
-    
-    # Handler pesan media yang diterima
-    media_handler = MessageHandler(Filters.photo | Filters.video, handle_media)
-    dispatcher.add_handler(media_handler)
-    
+    # Inisialisasi bot dengan token
+    updater = Updater("6007897911:AAGgi7Ya7Gz7SNa8bjV31-4fMjguShjl3rU")  # Ganti dengan token bot Telegram yang sebenarnya
+
+    # Mendaftarkan handler untuk perintah /copylink
+    updater.dispatcher.add_handler(CommandHandler("copylink", copy_link))
+
+    # Memulai bot
     updater.start_polling()
     updater.idle()
 
-# Menjalankan bot Telegram
+# Menjalankan bot
 if __name__ == '__main__':
     main()
