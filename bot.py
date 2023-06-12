@@ -1,37 +1,36 @@
 from telegram.ext import Updater, CommandHandler
+from telegram import ChatAction
+from datetime import datetime, timedelta
 
-# Inisialisasi variabel global
-links = {}  # Dictionary untuk menyimpan tautan channel
+TOKEN = '6007897911:AAGgi7Ya7Gz7SNa8bjV31-4fMjguShjl3rU'
 
-# Fungsi untuk menangani perintah /copylink
-def copy_link(update, context):
+def buat_tautan(update, context):
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
 
-    if user_id in links:
-        # Jika pengguna sudah meminta tautan sebelumnya
-        update.message.reply_text("Anda sudah meminta tautan sebelumnya.")
-    else:
-        if len(links) < 1:
-            # Jika masih ada slot tersedia
-            channel_link = "https://t.me/+zn9YABu82_M3M2I5"  # Ganti dengan tautan channel yang sebenarnya
-            links[user_id] = channel_link
-            update.message.reply_text(f"Ini tautan channel: {channel_link}")
-        else:
-            # Jika semua slot sudah terisi
-            update.message.reply_text("Maaf, jumlah permintaan sudah mencapai batas.")
+    # Cek apakah pengguna telah memiliki tautan channel sebelumnya
+    if user_id in context.user_data:
+        # Cek apakah tautan channel masih berlaku
+        if context.user_data[user_id]['expiration'] > datetime.now():
+            tautan = context.user_data[user_id]['tautan']
+            update.message.reply_text(f"Anda sudah memiliki tautan channel yang masih berlaku: {tautan}")
+            return
 
-# Fungsi utama untuk menjalankan bot
+    # Buat tautan channel baru
+    channel_link = "https://t.me/+zn9YABu82_M3M2I5"
+    expiration_time = datetime.now() + timedelta(minutes=1)
+    context.user_data[user_id] = {'tautan': channel_link, 'expiration': expiration_time}
+
+    update.message.reply_text(f"Anda telah membuat tautan channel: {channel_link}. Tautan akan kedaluwarsa dalam 1 menit.")
+
 def main():
-    # Inisialisasi bot dengan token
-    updater = Updater("6007897911:AAGgi7Ya7Gz7SNa8bjV31-4fMjguShjl3rU")  # Ganti dengan token bot Telegram yang sebenarnya
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-    # Mendaftarkan handler untuk perintah /copylink
-    updater.dispatcher.add_handler(CommandHandler("copylink", copy_link))
+    dp.add_handler(CommandHandler("buat_tautan", buat_tautan))
 
-    # Memulai bot
     updater.start_polling()
     updater.idle()
 
-# Menjalankan bot
 if __name__ == '__main__':
     main()
