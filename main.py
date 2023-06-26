@@ -74,20 +74,21 @@ def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_
 
 # batch command
 @bot.on_message(filters.command(["batch"]))
-def batch_download(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    # Check if the user provided the correct arguments
-    if len(message.command) != 3:
+def batch_command(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+    args = message.text.split()
+    if len(args) != 3:
         bot.send_message(
             message.chat.id,
-            f"⚠️ Gunakan perintah berikut: `/batch <msgid> <count>`\n\nExample: `/batch https://t.me/c/12345678/62 5`",
+            "⚠️ Invalid argument! Please provide valid message ID and count.",
             reply_to_message_id=message.id,
         )
         return
 
     try:
-        msgid = int(message.command[1])
-        count = int(message.command[2])
-    except ValueError:
+        url = args[1]
+        count = int(args[2])
+        msgid = int(url.split("/")[-1])
+    except (ValueError, IndexError):
         bot.send_message(
             message.chat.id,
             "⚠️ Invalid argument! Please provide valid message ID and count.",
@@ -96,14 +97,22 @@ def batch_download(client: pyrogram.client.Client, message: pyrogram.types.messa
         return
 
     if acc is None:
-        bot.send_message(message.chat.id, "**String Session is not Set**", reply_to_message_id=message.id)
+        bot.send_message(
+            message.chat.id,
+            "**String Session is not Set**",
+            reply_to_message_id=message.id,
+        )
         return
 
     try:
         chatid = message.chat.id
         messages = acc.get_chat_messages(chatid, msgid, limit=count)
     except Exception as e:
-        bot.send_message(message.chat.id, f"**Error**: {str(e)}", reply_to_message_id=message.id)
+        bot.send_message(
+            message.chat.id,
+            f"**Error**: {str(e)}",
+            reply_to_message_id=message.id,
+        )
         return
 
     for msg in messages:
