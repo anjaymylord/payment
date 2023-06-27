@@ -72,53 +72,6 @@ def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_
     )
 
 
-# batch command
-@bot.on_message(filters.command(["batch"]))
-def batch_command(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    args = message.text.split()
-    if len(args) != 3:
-        bot.send_message(
-            message.chat.id,
-            "⚠️ Invalid argument! Please provide valid message ID and count.",
-            reply_to_message_id=message.id,
-        )
-        return
-
-    try:
-        url = args[1]
-        count = int(args[2])
-        msgid = int(url.split("/")[-1])
-    except (ValueError, IndexError):
-        bot.send_message(
-            message.chat.id,
-            "⚠️ Invalid argument! Please provide valid message ID and count.",
-            reply_to_message_id=message.id,
-        )
-        return
-
-    if acc is None:
-        bot.send_message(
-            message.chat.id,
-            "**String Session is not Set**",
-            reply_to_message_id=message.id,
-        )
-        return
-
-    try:
-        chatid = message.chat.id
-        messages = acc.get_chat_messages(chatid, msgid, limit=count)
-    except Exception as e:
-        bot.send_message(
-            message.chat.id,
-            f"**Error**: {str(e)}",
-            reply_to_message_id=message.id,
-        )
-        return
-
-    for msg in messages:
-        handle_private(message, chatid, msg.message_id)
-
-
 # handle private
 def handle_private(message, chatid, msgid):
     msg = acc.get_messages(chatid, msgid)
@@ -231,5 +184,18 @@ def handle_private(message, chatid, msgid):
 
     os.remove(f'{message.id}upstatus.txt')
     bot.delete_messages(message.chat.id, smsg.message_id)
+
+
+# run batch
+async def run_batch(client, conv, user_id, link, _range):
+    for i in range(1, _range+1):
+        await asyncio.sleep(1)
+        msg = await bot.send_message(conv.chat_id, f"Processing link {i}/{_range}...")
+        # Process the link here
+        # ...
+        await asyncio.sleep(1)
+        await bot.edit_message_text(conv.chat_id, msg.message_id, f"Processed link {i}/{_range}")
+    await bot.send_message(conv.chat_id, "Batch process completed!")
+
 
 bot.run()
