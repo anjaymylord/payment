@@ -186,16 +186,27 @@ def handle_private(message, chatid, msgid):
     bot.delete_messages(message.chat.id, smsg.message_id)
 
 
-# run batch
-async def run_batch(client, conv, user_id, link, _range):
-    for i in range(1, _range+1):
-        await asyncio.sleep(1)
-        msg = await bot.send_message(conv.chat_id, f"Processing link {i}/{_range}...")
-        # Process the link here
-        # ...
-        await asyncio.sleep(1)
-        await bot.edit_message_text(conv.chat_id, msg.message_id, f"Processed link {i}/{_range}")
-    await bot.send_message(conv.chat_id, "Batch process completed!")
+# batch command
+@bot.on_message(filters.command(["batch"]))
+def set_batch_range(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+    global batch
+
+    args = message.text.split()
+    if len(args) != 3:
+        bot.send_message(message.chat.id, "Invalid command format. Use /batch start_index end_index.")
+        return
+
+    try:
+        start_index = int(args[1])
+        end_index = int(args[2])
+        if start_index <= 0 or end_index <= 0 or start_index > end_index:
+            bot.send_message(message.chat.id, "Invalid index range.")
+            return
+
+        batch = [start_index, end_index]
+        bot.send_message(message.chat.id, f"Batch range set from {start_index} to {end_index}.")
+    except ValueError:
+        bot.send_message(message.chat.id, "Invalid index range.")
 
 
 bot.run()
